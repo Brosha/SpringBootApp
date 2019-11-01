@@ -10,8 +10,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.photoapp.UserRepository;
 import com.photoapp.io.entity.UserEntity;
+import com.photoapp.io.repositories.UserRepository;
 import com.photoapp.service.UserService;
 import com.photoapp.shared.Utils;
 import com.photoapp.shared.dto.UserDTO;
@@ -45,6 +45,15 @@ public class UserServiceImpl implements UserService {
 		
 		return returnUserDTO;
 	}
+	
+	@Override
+	public UserDTO getUser(String email) {
+		UserEntity userEntity = userRepository.findUserByEmail(email);
+		if (userEntity == null) throw new UsernameNotFoundException(email);
+		UserDTO returnUserDTO = new UserDTO();
+		BeanUtils.copyProperties(userEntity, returnUserDTO);
+		return returnUserDTO;
+	}
 
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -52,5 +61,7 @@ public class UserServiceImpl implements UserService {
 		if (userEntity == null) throw new UsernameNotFoundException(email);
 		return new User(userEntity.getEmail(), userEntity.getEncryptedPassword(), new ArrayList<>());
 	}
+
+
 
 }
