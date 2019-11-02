@@ -20,6 +20,8 @@ import com.photoapp.service.UserService;
 import com.photoapp.shared.dto.UserDTO;
 import com.photoapp.ui.model.request.UserDetailsRequestModel;
 import com.photoapp.ui.model.response.ErrorMessages;
+import com.photoapp.ui.model.response.OperationStatusModel;
+import com.photoapp.ui.model.response.RequestOperationStatus;
 import com.photoapp.ui.model.response.UserRest;
 
 @RestController
@@ -69,9 +71,18 @@ public class UserController {
 		return returnValue;
 	}
 	
-	@DeleteMapping
-	public String deleteUSer() {
-		return "delete user was called";
+	@DeleteMapping(
+			path = "/{id}",			
+			produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE}
+			)
+	public OperationStatusModel deleteUser(@PathVariable String id) {
+		
+		OperationStatusModel status = new OperationStatusModel();
+		status.setOperationName(RequestOperationName.DELETE.name());
+		userService.deleteUser(id);		
+		status.setOperationResult(RequestOperationStatus.SUCCESS.name());
+		
+		return status;
 		
 	}
 	
