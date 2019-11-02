@@ -10,11 +10,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.photoapp.exceptions.UserServiceException;
 import com.photoapp.io.entity.UserEntity;
 import com.photoapp.io.repositories.UserRepository;
 import com.photoapp.service.UserService;
 import com.photoapp.shared.Utils;
 import com.photoapp.shared.dto.UserDTO;
+import com.photoapp.ui.model.response.ErrorMessages;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -54,13 +56,7 @@ public class UserServiceImpl implements UserService {
 		BeanUtils.copyProperties(userEntity, returnUserDTO);
 		return returnUserDTO;
 	}
-
-	@Override
-	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-		UserEntity userEntity = userRepository.findByEmail(email);
-		if (userEntity == null) throw new UsernameNotFoundException(email);
-		return new User(userEntity.getEmail(), userEntity.getEncryptedPassword(), new ArrayList<>());
-	}
+	
 
 	@Override
 	public UserDTO getUserByUserId(String userId) {
@@ -72,6 +68,26 @@ public class UserServiceImpl implements UserService {
 		return userDTO;
 	}
 
+	@Override
+	public UserDTO updateUser(String userId, UserDTO userDTO) {
+		
+		UserDTO returnValue = new UserDTO();
+		
+		UserEntity userEntity = userRepository.findByUserId(userId);		
+		if (userEntity == null) throw new UserServiceException(ErrorMessages.NO_RECORD_FOUND.getErrorMessage());
+		userEntity.setFirstName(userDTO.getFirstName());
+		userEntity.setLastName(userDTO.getLastName());
+		UserEntity updatedValue =userRepository.save(userEntity);
+		BeanUtils.copyProperties(updatedValue, returnValue);
+		
+		return returnValue;
+	}
 
+	@Override
+	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+		UserEntity userEntity = userRepository.findByEmail(email);
+		if (userEntity == null) throw new UsernameNotFoundException(email);
+		return new User(userEntity.getEmail(), userEntity.getEncryptedPassword(), new ArrayList<>());
+	}
 
 }
