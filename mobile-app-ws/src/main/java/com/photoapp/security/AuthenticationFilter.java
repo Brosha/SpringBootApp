@@ -41,7 +41,9 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 					new UsernamePasswordAuthenticationToken(creds.getEmail(), creds.getPassword(), new ArrayList<>())
 					);
 		} catch (IOException e) {
+			System.out.println("AGA");
 			throw new RuntimeException(e);
+			
 		}
 		
 		

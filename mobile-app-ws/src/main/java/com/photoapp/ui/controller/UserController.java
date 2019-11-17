@@ -39,6 +39,7 @@ import com.photoapp.ui.model.response.UserRest;
 
 @RestController
 @RequestMapping("/users") // http://localhost:8080/users
+//http://localhost:8080/mobile-app-ws/users
 public class UserController {
 
 	@Autowired
@@ -124,10 +125,11 @@ public class UserController {
 			ModelMapper modelMapper = new ModelMapper();
 			Type listType = new TypeToken<List<AddressesRest>>() {
 			}.getType();
-			addressesListRestModel= modelMapper.map(addressesDTO, listType);
-			
+			addressesListRestModel = modelMapper.map(addressesDTO, listType);
+
 			for (AddressesRest addressRest : addressesListRestModel) {
-				Link addressLink = linkTo(methodOn(UserController.class).getUserAddress(id, addressRest.getAddressId())).withSelfRel();
+				Link addressLink = linkTo(methodOn(UserController.class).getUserAddress(id, addressRest.getAddressId()))
+						.withSelfRel();
 				addressRest.add(addressLink);
 				Link userLink = linkTo(methodOn(UserController.class).getUser(id)).withRel("user");
 				addressRest.add(userLink);
@@ -139,7 +141,6 @@ public class UserController {
 	@GetMapping(path = "/{userId}/addresses/{addressId}", produces = { MediaType.APPLICATION_XML_VALUE,
 			MediaType.APPLICATION_JSON_VALUE, "application/hal+json" })
 	public Resource<AddressesRest> getUserAddress(@PathVariable String userId, @PathVariable String addressId) {
-		AddressesRest returnValue = new AddressesRest();
 		AddressDTO addressDTO = addressService.getAddress(addressId);
 
 		ModelMapper modelMapper = new ModelMapper();
@@ -152,6 +153,22 @@ public class UserController {
 		addressesRestModel.add(userLink);
 		addressesRestModel.add(addressesLink);
 		return new Resource<>(addressesRestModel);
+	}
+
+	@GetMapping(path = "/email-verification", produces = { MediaType.APPLICATION_XML_VALUE,
+			MediaType.APPLICATION_JSON_VALUE })
+
+	public OperationStatusModel verifyEmailToken(@RequestParam(value = "token") String token) {
+		OperationStatusModel returnValue = new OperationStatusModel();
+		returnValue.setOperationName(RequestOperationName.VERIFY_EMAIL.name());
+		boolean isVerified = userService.verifyEmailToken(token);
+		if (isVerified) {
+			returnValue.setOperationResult(RequestOperationStatus.SUCCESS.name());
+		} else {
+			returnValue.setOperationResult(RequestOperationStatus.ERROR.name());
+		}
+
+		return returnValue;
 	}
 
 }

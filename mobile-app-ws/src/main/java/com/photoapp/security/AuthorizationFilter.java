@@ -8,7 +8,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,6 +28,7 @@ public class AuthorizationFilter extends BasicAuthenticationFilter{
 		String header = request.getHeader(SecurityConstants.HEADER_STRING);
 		if (header == null || !header.startsWith(SecurityConstants.TOKEN_PREFIX)) {
 			chain.doFilter(request, response);
+			return;
 		}
 		
 		UsernamePasswordAuthenticationToken authentication = getAuthentication(request);
@@ -38,7 +38,7 @@ public class AuthorizationFilter extends BasicAuthenticationFilter{
 
 	private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request) {
 		String token= request.getHeader(SecurityConstants.HEADER_STRING);
-		if(token != null)
+		if(token != null) {
 			token = token.replace(SecurityConstants.TOKEN_PREFIX, "");
 		
 		String user = Jwts.parser()
@@ -49,6 +49,9 @@ public class AuthorizationFilter extends BasicAuthenticationFilter{
 		if(user!=null) {
 			
 			return  new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
+		}
+		
+		return null;
 		}
 		
 		return null;

@@ -12,6 +12,7 @@
 	<groupId>com.photoapp</groupId>
 	<artifactId>mobile-app-ws</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
 	<name>mobile-app-ws</name>
 	<description>Demo project for Spring Boot</description>
 
@@ -53,7 +54,18 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-hateoas</artifactId>			
+			<artifactId>spring-boot-starter-hateoas</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-tomcat</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-ses -->
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-ses</artifactId>
+			<version>1.11.675</version>
 		</dependency>
 
 		<dependency>
