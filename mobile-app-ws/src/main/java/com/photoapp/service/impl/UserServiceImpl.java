@@ -19,6 +19,7 @@ import com.photoapp.exceptions.UserServiceException;
 import com.photoapp.io.entity.UserEntity;
 import com.photoapp.io.repository.UserRepository;
 import com.photoapp.service.UserService;
+import com.photoapp.shared.AmazonSES;
 import com.photoapp.shared.Utils;
 import com.photoapp.shared.dto.AddressDTO;
 import com.photoapp.shared.dto.UserDTO;
@@ -66,6 +67,7 @@ public class UserServiceImpl implements UserService {
 		UserEntity storedUserDetails = userRepository.save(userEntity);
 		UserDTO returnUserDTO =  modelMapper.map(storedUserDetails, UserDTO.class);
 		
+		new AmazonSES().verifyEmail(returnUserDTO);
 
 		return returnUserDTO;
 	}

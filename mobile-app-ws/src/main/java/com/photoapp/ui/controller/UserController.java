@@ -155,8 +155,12 @@ public class UserController {
 		return new Resource<>(addressesRestModel);
 	}
 
-	@GetMapping(path = "/email-verification", produces = { MediaType.APPLICATION_XML_VALUE,
-			MediaType.APPLICATION_JSON_VALUE })
+	/*
+	 * http://localhost:8080/mobile-app-ws/users/email-verification?token=asdd
+	 * 
+	 */
+	@GetMapping(path = "/email-verification", produces = { MediaType.APPLICATION_JSON_VALUE,
+			MediaType.APPLICATION_XML_VALUE, })
 
 	public OperationStatusModel verifyEmailToken(@RequestParam(value = "token") String token) {
 		OperationStatusModel returnValue = new OperationStatusModel();
