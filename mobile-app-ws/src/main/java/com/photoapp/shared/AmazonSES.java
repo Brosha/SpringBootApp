@@ -23,12 +23,12 @@ public class AmazonSES {
 	final String SUBJECT = "One last step to complete your registration with PhotoApp";
 	
 	final String PASSWORD_RESET_SUBJECT = "Password reset request";
-
+	
 	// The HTML body for the email.
 	final String HTMLBODY = "<h1>Please verify your email address</h1>"
 			+ "<p>Thank you for registering with our mobile app. To complete registration process and be able to log in,"
 			+ " click on the following link: "
-			+ "<a href='http://ec2-35-173-238-100.compute-1.amazonaws.com:8080/verification-service/email-verification.html?token=$tokenValue'>"
+			+ "<a href='http://localhost:8080/verification-service/email-verification.html?token=$tokenValue'>"
 			+ "Final step to complete your registration" + "</a><br/><br/>"
 			+ "Thank you! And we are waiting for you inside!";
 
@@ -36,7 +36,7 @@ public class AmazonSES {
 	final String TEXTBODY = "Please verify your email address. "
 			+ "Thank you for registering with our mobile app. To complete registration process and be able to log in,"
 			+ " open then the following URL in your browser window: "
-			+ " http://ec2-35-173-238-100.compute-1.amazonaws.com:8080/verification-service/email-verification.html?token=$tokenValue"
+			+ " http://localhost:8080/verification-service/email-verification.html?token=$tokenValue"
 			+ " Thank you! And we are waiting for you inside!";
 	
 	
@@ -64,7 +64,7 @@ public class AmazonSES {
 		System.setProperty("aws.accessKeyId", "AKIAUXZMZQ4IA3EK7OEW"); 
 		System.setProperty("aws.secretKey", "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"); 
 		
-		AmazonSimpleEmailService client = AmazonSimpleEmailServiceClientBuilder.standard().withRegion(Regions.US_EAST_1)
+		AmazonSimpleEmailService client = AmazonSimpleEmailServiceClientBuilder.standard().withRegion(Regions.US_WEST_2)
 				.build();
  
 		String htmlBodyWithToken = HTMLBODY.replace("$tokenValue", userDto.getEmailVerificationToken());
@@ -85,12 +85,18 @@ public class AmazonSES {
 	}
 
 	 public boolean sendPasswordResetRequest(String firstName, String email, String token)
-	  {
+	  
+	 
+	 {
+		 
+		 	System.setProperty("aws.accessKeyId", "AKIAUXZMZQ4IA3EK7OEW"); 
+			System.setProperty("aws.secretKey", "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");
+			
 	      boolean returnValue = false;
 	 
 	      AmazonSimpleEmailService client = 
 	          AmazonSimpleEmailServiceClientBuilder.standard()
-	            .withRegion(Regions.US_EAST_1).build();
+	            .withRegion(Regions.US_WEST_2).build();
 	      
 	      String htmlBodyWithToken = PASSWORD_RESET_HTMLBODY.replace("$tokenValue", token);
 	             htmlBodyWithToken = htmlBodyWithToken.replace("$firstName", firstName);

@@ -30,6 +30,8 @@ import com.photoapp.service.AddressService;
 import com.photoapp.service.UserService;
 import com.photoapp.shared.dto.AddressDTO;
 import com.photoapp.shared.dto.UserDTO;
+import com.photoapp.ui.model.request.PasswordResetModel;
+import com.photoapp.ui.model.request.PasswordResetRequestModel;
 import com.photoapp.ui.model.request.UserDetailsRequestModel;
 import com.photoapp.ui.model.response.AddressesRest;
 import com.photoapp.ui.model.response.ErrorMessages;
@@ -48,7 +50,7 @@ public class UserController {
 	@Autowired
 	AddressService addressService;
 
-	@GetMapping(path = "/{id}", produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
+	@GetMapping(path = "/{id}", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	public UserRest getUser(@PathVariable String id) {
 		UserRest returnValue = new UserRest();
 		UserDTO userDTO = userService.getUserByUserId(id);
@@ -58,8 +60,8 @@ public class UserController {
 		return returnValue;
 	}
 
-	@PostMapping(consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, produces = {
-			MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
+	@PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE }, produces = {
+			MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	public UserRest createUser(@RequestBody UserDetailsRequestModel userDetails) throws Exception {
 
 		UserRest returnValue = new UserRest();
@@ -77,9 +79,9 @@ public class UserController {
 
 	}
 
-	@PutMapping(path = "/{id}", consumes = { MediaType.APPLICATION_XML_VALUE,
-			MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_XML_VALUE,
-					MediaType.APPLICATION_JSON_VALUE })
+	@PutMapping(path = "/{id}", consumes = { MediaType.APPLICATION_JSON_VALUE,
+			MediaType.APPLICATION_XML_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE,
+					MediaType.APPLICATION_XML_VALUE })
 	public UserRest updateUser(@PathVariable String id, @RequestBody UserDetailsRequestModel userDetails) {
 		UserRest returnValue = new UserRest();
 		UserDTO userDTO = new UserDTO();
@@ -89,7 +91,7 @@ public class UserController {
 		return returnValue;
 	}
 
-	@DeleteMapping(path = "/{id}", produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
+	@DeleteMapping(path = "/{id}", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	public OperationStatusModel deleteUser(@PathVariable String id) {
 
 		OperationStatusModel status = new OperationStatusModel();
@@ -101,7 +103,7 @@ public class UserController {
 
 	}
 
-	@GetMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
+	@GetMapping(produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	public List<UserRest> getUsers(@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "limit", defaultValue = "20") int limit) {
 		List<UserRest> returnValue = new ArrayList<>();
@@ -116,8 +118,8 @@ public class UserController {
 	}
 
 	// http://localhost:8080/users/{id}/addresses
-	@GetMapping(path = "/{id}/addresses", produces = { MediaType.APPLICATION_XML_VALUE,
-			MediaType.APPLICATION_JSON_VALUE, "application/hal+json" })
+	@GetMapping(path = "/{id}/addresses", produces = { MediaType.APPLICATION_JSON_VALUE,
+			MediaType.APPLICATION_XML_VALUE, "application/hal+json" })
 	public Resources<AddressesRest> getUserAddresses(@PathVariable String id) {
 		List<AddressesRest> addressesListRestModel = new ArrayList<AddressesRest>();
 		List<AddressDTO> addressesDTO = addressService.getAddresses(id);
@@ -138,8 +140,8 @@ public class UserController {
 		return new Resources<>(addressesListRestModel);
 	}
 
-	@GetMapping(path = "/{userId}/addresses/{addressId}", produces = { MediaType.APPLICATION_XML_VALUE,
-			MediaType.APPLICATION_JSON_VALUE, "application/hal+json" })
+	@GetMapping(path = "/{userId}/addresses/{addressId}", produces = { MediaType.APPLICATION_JSON_VALUE,
+			MediaType.APPLICATION_XML_VALUE, "application/hal+json" })
 	public Resource<AddressesRest> getUserAddress(@PathVariable String userId, @PathVariable String addressId) {
 		AddressDTO addressDTO = addressService.getAddress(addressId);
 
@@ -170,6 +172,46 @@ public class UserController {
 			returnValue.setOperationResult(RequestOperationStatus.SUCCESS.name());
 		} else {
 			returnValue.setOperationResult(RequestOperationStatus.ERROR.name());
+		}
+
+		return returnValue;
+	}
+
+	/*
+	 * http://localhost:8080/mobile-app-ws/users/password-reset-request
+	 * 
+	 */
+	@PostMapping(path = "/password-reset-request", produces = { MediaType.APPLICATION_JSON_VALUE,
+			MediaType.APPLICATION_XML_VALUE }, consumes = { MediaType.APPLICATION_JSON_VALUE,
+					MediaType.APPLICATION_XML_VALUE })
+	public OperationStatusModel requestReset(@RequestBody PasswordResetRequestModel passwordResetRequestModel) {
+		OperationStatusModel returnValue = new OperationStatusModel();
+
+		boolean operationResult = userService.requestPasswordReset(passwordResetRequestModel.getEmail());
+
+		returnValue.setOperationName(RequestOperationName.REQUEST_PASSWORD_RESET.name());
+		returnValue.setOperationResult(RequestOperationStatus.ERROR.name());
+
+		if (operationResult) {
+			returnValue.setOperationResult(RequestOperationStatus.SUCCESS.name());
+		}
+
+		return returnValue;
+	}
+
+	@PostMapping(path = "/password-reset", consumes = { MediaType.APPLICATION_JSON_VALUE,
+			MediaType.APPLICATION_XML_VALUE })
+	public OperationStatusModel resetPassword(@RequestBody PasswordResetModel passwordResetModel) {
+		OperationStatusModel returnValue = new OperationStatusModel();
+
+		boolean operationResult = userService.resetPassword(passwordResetModel.getToken(),
+				passwordResetModel.getPassword());
+
+		returnValue.setOperationName(RequestOperationName.PASSWORD_RESET.name());
+		returnValue.setOperationResult(RequestOperationStatus.ERROR.name());
+
+		if (operationResult) {
+			returnValue.setOperationResult(RequestOperationStatus.SUCCESS.name());
 		}
 
 		return returnValue;

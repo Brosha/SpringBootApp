@@ -4,7 +4,7 @@ import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Random;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.photoapp.security.SecurityConstants;
 
@@ -12,7 +12,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
-@Component
+@Service
 public class Utils {
 	private final Random RANDOM = new SecureRandom();
     private final String ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -45,10 +45,19 @@ public class Utils {
 		return tokenExpirationDate.before(todayDate);
 	}
 
-	public static String generateEmailVerificationToken(String publicUserId) {
+	public String generateEmailVerificationToken(String publicUserId) {
 		String token = Jwts.builder()
 				.setSubject(publicUserId)
 				.setExpiration(new Date(System.currentTimeMillis()+SecurityConstants.EXPIRATION_TIME))
+				.signWith(SignatureAlgorithm.HS512, SecurityConstants.getTokenSecret())
+				.compact();
+		return token;
+	}
+
+	public String generatePasswordResetToken(String userId) {
+		String token = Jwts.builder()
+				.setSubject(userId)
+				.setExpiration(new Date(System.currentTimeMillis()+SecurityConstants.PASSWORD_RESET_EXPIRATION_TIME))
 				.signWith(SignatureAlgorithm.HS512, SecurityConstants.getTokenSecret())
 				.compact();
 		return token;
