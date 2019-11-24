@@ -85,9 +85,13 @@ public class UserController {
 	public UserRest updateUser(@PathVariable String id, @RequestBody UserDetailsRequestModel userDetails) {
 		UserRest returnValue = new UserRest();
 		UserDTO userDTO = new UserDTO();
-		BeanUtils.copyProperties(userDetails, userDTO);
+		//BeanUtils.copyProperties(userDetails, userDTO);
+		ModelMapper modelMapper = new ModelMapper();
+		
+		userDTO = modelMapper.map(userDetails, UserDTO.class);
 		UserDTO updatedUser = userService.updateUser(id, userDTO);
-		BeanUtils.copyProperties(updatedUser, returnValue);
+		//BeanUtils.copyProperties(updatedUser, returnValue);
+		returnValue = new ModelMapper().map(updatedUser, UserRest.class);
 		return returnValue;
 	}
 
