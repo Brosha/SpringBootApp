@@ -2,18 +2,20 @@ package com.photoapp.ui.controller;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.Resources;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,6 +40,10 @@ import com.photoapp.ui.model.response.OperationStatusModel;
 import com.photoapp.ui.model.response.RequestOperationStatus;
 import com.photoapp.ui.model.response.UserRest;
 
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+
 @RestController
 @RequestMapping("/users") // http://localhost:8080/users
 //http://localhost:8080/mobile-app-ws/users
@@ -48,7 +54,12 @@ public class UserController {
 
 	@Autowired
 	AddressService addressService;
-
+	
+	
+	@ApiOperation(value = "The Get User Details Web Service Endpoint",
+			notes="${userController.GetUser.ApiOperation.Notes}")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "${userController.authorizationHeader.description}", paramType = "header") })
 	@GetMapping(path = "/{id}", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	public UserRest getUser(@PathVariable String id) {
 		UserRest returnValue = new UserRest();
@@ -58,6 +69,10 @@ public class UserController {
 		returnValue = modelMapper.map(userDTO, UserRest.class);
 		return returnValue;
 	}
+	
+	
+	@ApiOperation(value = "The Create User Details Web Service Endpoint",
+			notes="${userController.CreateUser.ApiOperation.Notes}")
 
 	@PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE }, produces = {
 			MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
@@ -77,6 +92,12 @@ public class UserController {
 		return returnValue;
 
 	}
+	
+	@ApiOperation(value = "The Create User Details Web Service Endpoint",
+			notes="${userController.UpdateUser.ApiOperation.Notes}")
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "${userController.authorizationHeader.description}", paramType = "header") })
 
 	@PutMapping(path = "/{id}", consumes = { MediaType.APPLICATION_JSON_VALUE,
 			MediaType.APPLICATION_XML_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE,
@@ -84,15 +105,18 @@ public class UserController {
 	public UserRest updateUser(@PathVariable String id, @RequestBody UserDetailsRequestModel userDetails) {
 		UserRest returnValue = new UserRest();
 		UserDTO userDTO = new UserDTO();
-		//BeanUtils.copyProperties(userDetails, userDTO);
+		// BeanUtils.copyProperties(userDetails, userDTO);
 		ModelMapper modelMapper = new ModelMapper();
-		
+
 		userDTO = modelMapper.map(userDetails, UserDTO.class);
 		UserDTO updatedUser = userService.updateUser(id, userDTO);
-		//BeanUtils.copyProperties(updatedUser, returnValue);
+		// BeanUtils.copyProperties(updatedUser, returnValue);
 		returnValue = new ModelMapper().map(updatedUser, UserRest.class);
 		return returnValue;
 	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "${userController.authorizationHeader.description}", paramType = "header") })
 
 	@DeleteMapping(path = "/{id}", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	public OperationStatusModel deleteUser(@PathVariable String id) {
@@ -106,6 +130,8 @@ public class UserController {
 
 	}
 
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "${userController.authorizationHeader.description}", paramType = "header") })
 	@GetMapping(produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	public List<UserRest> getUsers(@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "limit", defaultValue = "20") int limit) {
@@ -120,10 +146,13 @@ public class UserController {
 		return returnValue;
 	}
 
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "${userController.authorizationHeader.description}", paramType = "header") })
+
 	// http://localhost:8080/users/{id}/addresses
 	@GetMapping(path = "/{id}/addresses", produces = { MediaType.APPLICATION_JSON_VALUE,
 			MediaType.APPLICATION_XML_VALUE, "application/hal+json" })
-	public Resources<AddressesRest> getUserAddresses(@PathVariable String id) {
+	public CollectionModel<AddressesRest> getUserAddresses(@PathVariable String id) {
 		List<AddressesRest> addressesListRestModel = new ArrayList<AddressesRest>();
 		List<AddressDTO> addressesDTO = addressService.getAddresses(id);
 		if (addressesDTO != null && !addressesDTO.isEmpty()) {
@@ -133,31 +162,49 @@ public class UserController {
 			addressesListRestModel = modelMapper.map(addressesDTO, listType);
 
 			for (AddressesRest addressRest : addressesListRestModel) {
-				Link addressLink = linkTo(methodOn(UserController.class).getUserAddress(id, addressRest.getAddressId()))
+				Link userLink = WebMvcLinkBuilder.linkTo(
+						WebMvcLinkBuilder.methodOn(UserController.class).getUserAddress(id, addressRest.getAddressId()))
 						.withSelfRel();
-				addressRest.add(addressLink);
-				Link userLink = linkTo(methodOn(UserController.class).getUser(id)).withRel("user");
 				addressRest.add(userLink);
 			}
+
 		}
-		return new Resources<>(addressesListRestModel);
+
+		Link userLink = WebMvcLinkBuilder.linkTo(UserController.class).slash(id).withRel("user");
+		Link selfLink = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).getUserAddresses(id))
+				.withSelfRel();
+
+		return CollectionModel.of(addressesListRestModel, userLink, selfLink);
 	}
 
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "${userController.authorizationHeader.description}", paramType = "header") })
 	@GetMapping(path = "/{userId}/addresses/{addressId}", produces = { MediaType.APPLICATION_JSON_VALUE,
 			MediaType.APPLICATION_XML_VALUE, "application/hal+json" })
-	public Resource<AddressesRest> getUserAddress(@PathVariable String userId, @PathVariable String addressId) {
+	public EntityModel<AddressesRest> getUserAddress(@PathVariable String userId, @PathVariable String addressId) {
 		AddressDTO addressDTO = addressService.getAddress(addressId);
 
 		ModelMapper modelMapper = new ModelMapper();
-		Link addressLink = linkTo(methodOn(UserController.class).getUserAddress(userId, addressId)).withSelfRel();
-		Link userLink = linkTo(UserController.class).slash(userId).withRel("user");
-		Link addressesLink = linkTo(methodOn(UserController.class).getUserAddresses(userId)).withRel("addresses");
 		AddressesRest addressesRestModel = modelMapper.map(addressDTO, AddressesRest.class);
+		// http://localhost:8080/users/<userId>
+		Link userLink = WebMvcLinkBuilder.linkTo(UserController.class).slash(userId).withRel("user");
+		Link userAddressesLink = WebMvcLinkBuilder
+				.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).getUserAddresses(userId))
+				// .slash(userId)
+				// .slash("addresses")
+				.withRel("addresses");
+		Link selfLink = WebMvcLinkBuilder
+				.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).getUserAddress(userId, addressId))
+				// .slash(userId)
+				// .slash("addresses")
+				// .slash(addressId)
+				.withSelfRel();
 
-		addressesRestModel.add(addressLink);
-		addressesRestModel.add(userLink);
-		addressesRestModel.add(addressesLink);
-		return new Resource<>(addressesRestModel);
+		// addressesRestModel.add(userLink);
+		// addressesRestModel.add(userAddressesLink);
+		// addressesRestModel.add(selfLink);
+
+		return EntityModel.of(addressesRestModel, Arrays.asList(userLink, userAddressesLink, selfLink));
 	}
 
 	/*
@@ -166,7 +213,7 @@ public class UserController {
 	 */
 	@GetMapping(path = "/email-verification", produces = { MediaType.APPLICATION_JSON_VALUE,
 			MediaType.APPLICATION_XML_VALUE, })
-
+	// @CrossOrigin(origins="*")
 	public OperationStatusModel verifyEmailToken(@RequestParam(value = "token") String token) {
 		OperationStatusModel returnValue = new OperationStatusModel();
 		returnValue.setOperationName(RequestOperationName.VERIFY_EMAIL.name());

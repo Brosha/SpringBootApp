@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
 		UserEntity storedUserDetails = userRepository.save(userEntity);
 		UserDTO returnUserDTO =  modelMapper.map(storedUserDetails, UserDTO.class);
 		
-		amazonSES.verifyEmail(returnUserDTO);
+		//amazonSES.verifyEmail(returnUserDTO);
 
 		return returnUserDTO;
 	}

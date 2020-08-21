@@ -1,8 +1,8 @@
 package com.photoapp.ui.model.response;
 
-import org.springframework.hateoas.ResourceSupport;
+import org.springframework.hateoas.RepresentationModel;
 
-public class AddressesRest extends ResourceSupport{
+public class AddressesRest extends RepresentationModel<AddressesRest>{
 	private String addressId;
 	private String city;
 	private String country;
